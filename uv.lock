@@ -281,6 +281,7 @@ dependencies = [
     { name = "azure-identity" },
     { name = "chainlit" },
     { name = "invoke" },
+    { name = "mcp-server-reddit" },
     { name = "numpy" },
     { name = "python-dotenv" },
     { name = "websockets" },
@@ -291,6 +292,7 @@ requires-dist = [
     { name = "azure-identity", specifier = "==1.19.0" },
     { name = "chainlit", specifier = "==2.6.2" },
     { name = "invoke", specifier = "==2.2.0" },
+    { name = "mcp-server-reddit", specifier = ">=0.2.0" },
     { name = "numpy", specifier = "==1.26.4" },
     { name = "python-dotenv", specifier = "==1.0.1" },
     { name = "websockets", specifier = "==14.0" },
@@ -869,6 +871,20 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/3a/f5/9506eb5578d5bbe9819ee8ba3198d0ad0e2fbe3bab8b257e4131ceb7dfb6/mcp-1.11.0.tar.gz", hash = "sha256:49a213df56bb9472ff83b3132a4825f5c8f5b120a90246f08b0dac6bedac44c8", size = 406907, upload-time = "2025-07-10T16:41:09.388Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/92/9c/c9ca79f9c512e4113a5d07043013110bb3369fc7770040c61378c7fbcf70/mcp-1.11.0-py3-none-any.whl", hash = "sha256:58deac37f7483e4b338524b98bc949b7c2b7c33d978f5fafab5bde041c5e2595", size = 155880, upload-time = "2025-07-10T16:41:07.935Z" },
+]
+
+[[package]]
+name = "mcp-server-reddit"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "mcp" },
+    { name = "pydantic" },
+    { name = "redditwarp" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/51/a4/7e65ba402a12bf3b17badd04e23c72afb2d7a8103cd41b4f608dba57fd9a/mcp_server_reddit-0.2.0.tar.gz", hash = "sha256:0b29e4bc2e75ba222d65395f8d845380dc5c363bdfb16e0cfaa1fbce7c8182f4", size = 15023, upload-time = "2025-02-06T07:59:54.755Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/72/b7/3d3ec6afb45738a1f1db476403ca311e8fbe12ff1cf941d6b422d4900f3e/mcp_server_reddit-0.2.0-py3-none-any.whl", hash = "sha256:0524041fdf9e3cbbcde5b4f082c373424d8039498557aa94f278575614cf382a", size = 7201, upload-time = "2025-02-06T07:59:53.555Z" },
 ]
 
 [[package]]
@@ -1949,6 +1965,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/fe/0f/25911a9f080464c59fab9027482f822b86bf0608957a5fcc6eaac85aa515/PyYAML-6.0.2-cp313-cp313-musllinux_1_1_x86_64.whl", hash = "sha256:68ccc6023a3400877818152ad9a1033e3db8625d899c72eacb5a668902e4d652", size = 751597, upload-time = "2024-08-06T20:32:56.985Z" },
     { url = "https://files.pythonhosted.org/packages/14/0d/e2c3b43bbce3cf6bd97c840b46088a3031085179e596d4929729d8d68270/PyYAML-6.0.2-cp313-cp313-win32.whl", hash = "sha256:bc2fa7c6b47d6bc618dd7fb02ef6fdedb1090ec036abab80d4681424b84c1183", size = 140527, upload-time = "2024-08-06T20:33:03.001Z" },
     { url = "https://files.pythonhosted.org/packages/fa/de/02b54f42487e3d3c6efb3f89428677074ca7bf43aae402517bc7cca949f3/PyYAML-6.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:8388ee1976c416731879ac16da0aff3f63b286ffdd57cdeb95f3f2e085687563", size = 156446, upload-time = "2024-08-06T20:33:04.33Z" },
+]
+
+[[package]]
+name = "redditwarp"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/03/f8/48d632fa5d21f805d0298dbdf70e6c802c9f5df048b5fe10074dd279ac47/redditwarp-1.3.0.tar.gz", hash = "sha256:962a092ae0e8e40f703af40996a6b7d896b718893e4c619d16740aa2426c7901", size = 207632, upload-time = "2024-07-01T07:09:55.839Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/c4/a62b72c184e2d98bd0a16a4fa7d693e82cb40ae2342c74d8e7acb66eebc5/redditwarp-1.3.0-py3-none-any.whl", hash = "sha256:752139e961965524e534295ddef363316ffcfafc9abb6e8a1cb08cc90645db97", size = 483990, upload-time = "2024-07-01T07:09:53.935Z" },
 ]
 
 [[package]]

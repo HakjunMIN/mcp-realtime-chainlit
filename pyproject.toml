@@ -10,6 +10,7 @@ dependencies = [
     "websockets==14.0",
     "invoke==2.2.0",
     "numpy==1.26.4",
+    "mcp-server-reddit>=0.2.0",
 ]
 
 [build-system]

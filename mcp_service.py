@@ -184,12 +184,10 @@ class MCPService:
         
         # Load MCP server configuration
         config = {
-            "airbnb": {
-                "command": "npx",
+            "reddit": {
+                "command": "uvx",
                 "args": [
-                    "-y",
-                    "@openbnb/mcp-server-airbnb",
-                    "--ignore-robots-txt"
+                    "mcp-server-reddit"
                 ]
             }
         }

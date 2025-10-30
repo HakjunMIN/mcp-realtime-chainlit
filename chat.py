@@ -21,9 +21,9 @@ async def setup_openai_realtime():
     max_tokens = 4096  
              
     openai_realtime = RealtimeClient(system_prompt=system_prompt, max_tokens=max_tokens)
-    cl.user_session.set("track_id", str(uuid4()))
+    cl.user_session.set("track_id", str(uuid4())) # 오디오 재생 트랙 ID 설정
     # Initialize the flag to track input type (text vs audio)
-    cl.user_session.set("is_text_input", True)
+    cl.user_session.set("is_text_input", True) # 입력값이 텍스트인지 오디오인지 추적하는 플래그 초기화
     async def handle_conversation_updated(event):
         item = event.get("item")
         delta = event.get("delta")
@@ -165,13 +165,13 @@ async def setup_openai_realtime():
     cl.user_session.set("openai_realtime", openai_realtime)
     
 
-@cl.on_chat_start
+@cl.on_chat_start # 앱 시작 : setup_openai_realtime 호출 및 연결 (Realtime 세션을 초기화하고 WebSocket연결)
 async def start():
     logger.info("Chat session started")
     try:
         await setup_openai_realtime()
         
-        openai_realtime: RealtimeClient = cl.user_session.get("openai_realtime")
+        openai_realtime: RealtimeClient = cl.user_session.get("openai_realtime") # 성공하면 세션에 클라이언트를 저장
         if not openai_realtime:
             logger.error("Failed to get openai_realtime from session")
             await cl.ErrorMessage(content="Failed to initialize OpenAI realtime client").send()
@@ -187,7 +187,7 @@ async def start():
         return False
 
 
-@cl.on_message
+@cl.on_message # 사용자의 텍스트를 입력받음
 async def on_message(message: cl.Message):
     try:
         openai_realtime: RealtimeClient = cl.user_session.get("openai_realtime")
@@ -208,19 +208,19 @@ async def on_message(message: cl.Message):
         # Configure for text-only response (no audio output for text input)
         await openai_realtime.update_session(modalities=["text"])
         
-        await openai_realtime.send_user_message_content([{ "type": 'input_text', "text": message.content}])
+        await openai_realtime.send_user_message_content([{ "type": 'input_text', "text": message.content}]) # 사용자의 메시지를 RealtimeClient로 전송
         
     except Exception as e:
         logger.error(f"Error in on_message: {str(e)}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         await cl.ErrorMessage(content=f"Error processing message: {str(e)}").send()
 
-@cl.on_audio_start
+@cl.on_audio_start # 음성 입력
 async def on_audio_start():
     logger.info("Audio recording started")
     return True
 
-@cl.on_audio_chunk
+@cl.on_audio_chunk # 오디오 청크를 수신
 async def on_audio_chunk(chunk: cl.InputAudioChunk):
     try:
         openai_realtime: RealtimeClient = cl.user_session.get("openai_realtime")

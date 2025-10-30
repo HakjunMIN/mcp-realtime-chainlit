@@ -91,102 +91,176 @@ class RealtimeEventHandler:
         return await future
 
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
-class RealtimeAPI(RealtimeEventHandler):
+# class RealtimeAPI(RealtimeEventHandler):
+#     def __init__(self):
+#         super().__init__()
+#         self.default_url = 'wss://api.openai.com/v1/realtime'
+#         self.url = os.environ["AZURE_OPENAI_ENDPOINT"]
+#         self.api_key = os.environ["AZURE_OPENAI_API_KEY"]
+#         self.credentials = DefaultAzureCredential()
+#         self.acquire_token = get_bearer_token_provider(self.credentials, "https://cognitiveservices.azure.com/.default")
+#         self.api_version = "2024-10-01-preview"
+#         self.azure_deployment = os.environ["AZURE_OPENAI_DEPLOYMENT"]
+#         self.ws = None
+
+#     def is_connected(self):
+#         return self.ws is not None
+
+#     def log(self, *args):
+#         message = " ".join(str(arg) for arg in args)
+#         logger.debug(f"[Websocket/{datetime.utcnow().isoformat()}] {message}")
+
+#     async def connect(self, model='gpt-4o-realtime-preview'):
+#         try:
+#             if self.is_connected():
+#                 logger.warning("Already connected to RealtimeAPI")
+#                 raise Exception("Already connected")
+                
+#             headers = {
+#                 "api-key": self.api_key
+#             } if self.api_key != "" else {
+#                 'Authorization': f'Bearer {self.acquire_token()}'
+#             }
+            
+#             self.ws = await websockets.connect(f"{self.url}/openai/realtime?api-version={self.api_version}&deployment={model}", additional_headers=headers)
+#             self.log(f"Connected to {self.url}")
+#             asyncio.create_task(self._receive_messages())
+#         except Exception as e:
+#             logger.error(f"Error connecting to RealtimeAPI: {str(e)}")
+#             logger.error(f"Traceback: {traceback.format_exc()}")
+#             raise e
+
+#     async def _receive_messages(self):
+#         try:
+#             async for message in self.ws:
+#                 event = json.loads(message)
+#                 if event['type'] == "error":
+#                     logger.error("Received error from server: %s", message)
+                    
+#                 self.log("received:", event)
+#                 self.dispatch(f"server.{event['type']}", event)
+#                 self.dispatch("server.*", event)
+#         except Exception as e:
+#             logger.error(f"Error in _receive_messages: {str(e)}")
+#             logger.error(f"Traceback: {traceback.format_exc()}")
+#             raise e
+
+#     async def send(self, event_name, data=None):
+#         try:
+#             if not self.is_connected():
+#                 logger.error("Attempted to send event but not connected")
+#                 raise Exception("RealtimeAPI is not connected")
+                
+#             data = data or {}
+#             if not isinstance(data, dict):
+#                 raise Exception("data must be a dictionary")
+                
+#             event = {
+#                 "event_id": self._generate_id("evt_"),
+#                 "type": event_name,
+#                 **data
+#             }
+            
+#             self.dispatch(f"client.{event_name}", event)
+#             self.dispatch("client.*", event)
+#             self.log("sent:", event)
+            
+#             await self.ws.send(json.dumps(event))
+#         except Exception as e:
+#             logger.error(f"Error sending event {event_name}: {str(e)}")
+#             logger.error(f"Traceback: {traceback.format_exc()}")
+#             raise e
+
+#     def _generate_id(self, prefix):
+#         return f"{prefix}{int(datetime.utcnow().timestamp() * 1000)}"
+
+#     async def disconnect(self):
+#         try:
+#             if self.ws:
+#                 await self.ws.close()
+#                 self.ws = None
+#                 self.log(f"Disconnected from {self.url}")
+#             else:
+#                 logger.info("RealtimeAPI was already disconnected")
+#         except Exception as e:
+#             logger.error(f"Error disconnecting RealtimeAPI: {str(e)}")
+#             logger.error(f"Traceback: {traceback.format_exc()}")
+#             raise e
+####################################################################################################################################################
+import os, asyncio, json, traceback
+import websockets
+from datetime import datetime
+from chainlit.logger import logger
+from collections import defaultdict
+
+class RealtimeAPI:
+    """OpenAI Realtime WebSocket API 클라이언트 (공식 openai.com)"""
     def __init__(self):
-        super().__init__()
-        self.default_url = 'wss://api.openai.com/v1/realtime'
-        self.url = os.environ["AZURE_OPENAI_ENDPOINT"]
-        self.api_key = os.environ["AZURE_OPENAI_API_KEY"]
-        self.credentials = DefaultAzureCredential()
-        self.acquire_token = get_bearer_token_provider(self.credentials, "https://cognitiveservices.azure.com/.default")
-        self.api_version = "2024-10-01-preview"
-        self.azure_deployment = os.environ["AZURE_OPENAI_DEPLOYMENT"]
+        self.api_key = os.environ["OPENAI_API_KEY"]
+        self.url = "wss://api.openai.com/v1/realtime"
+        self.model = os.environ.get("OPENAI_REALTIME_MODEL", "gpt-4o-realtime-preview")
         self.ws = None
+        self.event_handlers = defaultdict(list)
 
     def is_connected(self):
         return self.ws is not None
 
-    def log(self, *args):
-        message = " ".join(str(arg) for arg in args)
-        logger.debug(f"[Websocket/{datetime.utcnow().isoformat()}] {message}")
-
-    async def connect(self, model='gpt-4o-realtime-preview'):
+    async def connect(self):
+        """OpenAI Realtime WebSocket 연결"""
         try:
             if self.is_connected():
-                logger.warning("Already connected to RealtimeAPI")
+                logger.warning("Already connected")
                 raise Exception("Already connected")
-                
-            headers = {
-                "api-key": self.api_key
-            } if self.api_key != "" else {
-                'Authorization': f'Bearer {self.acquire_token()}'
-            }
             
-            self.ws = await websockets.connect(f"{self.url}/openai/realtime?api-version={self.api_version}&deployment={model}", additional_headers=headers)
-            self.log(f"Connected to {self.url}")
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "OpenAI-Beta": "realtime=v1"  # ✅ 중요! Realtime API 전용 헤더
+            }
+
+            connect_url = f"{self.url}?model={self.model}"
+            self.ws = await websockets.connect(connect_url, additional_headers=headers)
+            logger.info(f"✅ Connected to OpenAI Realtime API ({self.model})")
+
             asyncio.create_task(self._receive_messages())
         except Exception as e:
-            logger.error(f"Error connecting to RealtimeAPI: {str(e)}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
+            logger.error(f"❌ Connection failed: {e}")
+            logger.error(traceback.format_exc())
             raise e
 
     async def _receive_messages(self):
+        """서버 메시지 수신 루프"""
         try:
-            async for message in self.ws:
-                event = json.loads(message)
-                if event['type'] == "error":
-                    logger.error("Received error from server: %s", message)
-                    
-                self.log("received:", event)
-                self.dispatch(f"server.{event['type']}", event)
-                self.dispatch("server.*", event)
+            async for msg in self.ws:
+                event = json.loads(msg)
+                self._dispatch(f"server.{event.get('type','unknown')}", event)
         except Exception as e:
-            logger.error(f"Error in _receive_messages: {str(e)}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            raise e
+            logger.error(f"Error in receive loop: {e}")
+            logger.error(traceback.format_exc())
 
     async def send(self, event_name, data=None):
-        try:
-            if not self.is_connected():
-                logger.error("Attempted to send event but not connected")
-                raise Exception("RealtimeAPI is not connected")
-                
-            data = data or {}
-            if not isinstance(data, dict):
-                raise Exception("data must be a dictionary")
-                
-            event = {
-                "event_id": self._generate_id("evt_"),
-                "type": event_name,
-                **data
-            }
-            
-            self.dispatch(f"client.{event_name}", event)
-            self.dispatch("client.*", event)
-            self.log("sent:", event)
-            
-            await self.ws.send(json.dumps(event))
-        except Exception as e:
-            logger.error(f"Error sending event {event_name}: {str(e)}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            raise e
-
-    def _generate_id(self, prefix):
-        return f"{prefix}{int(datetime.utcnow().timestamp() * 1000)}"
+        """이벤트 전송"""
+        if not self.is_connected():
+            raise Exception("RealtimeAPI not connected")
+        event = {"type": event_name, **(data or {})}
+        await self.ws.send(json.dumps(event))
+        logger.debug(f"➡️ Sent: {event_name}")
 
     async def disconnect(self):
-        try:
-            if self.ws:
-                await self.ws.close()
-                self.ws = None
-                self.log(f"Disconnected from {self.url}")
-            else:
-                logger.info("RealtimeAPI was already disconnected")
-        except Exception as e:
-            logger.error(f"Error disconnecting RealtimeAPI: {str(e)}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            raise e
+        if self.ws:
+            await self.ws.close()
+            self.ws = None
+            logger.info("🔌 Disconnected from OpenAI Realtime")
 
+    def on(self, event_name, handler):
+        self.event_handlers[event_name].append(handler)
+
+    def _dispatch(self, event_name, event):
+        for h in self.event_handlers[event_name]:
+            if asyncio.iscoroutinefunction(h):
+                asyncio.create_task(h(event))
+            else:
+                h(event)
+#########################################################################################################################################################################################
 class RealtimeConversation:
     default_frequency = config.features.audio.sample_rate
     

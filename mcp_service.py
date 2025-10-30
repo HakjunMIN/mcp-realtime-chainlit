@@ -1,3 +1,4 @@
+# MCP 서버들을 별도 프로세스로 띄우고 관리하는 서비스
 import json
 import asyncio
 import logging
@@ -9,6 +10,9 @@ logger.setLevel(logging.DEBUG)
 
 @dataclass
 class MCPTool:
+    '''
+    MCP 서버가 제공하는 메타데이터를 담는 클래스
+    '''
     name: str
     description: str
     parameters: Dict[str, Any]
@@ -17,6 +21,7 @@ class MCPServerClient:
     def __init__(self):
         self.servers = {}
         self.tools = {}
+        # tools : {"tool_name": {서버, 설명, 스키마}, ...}
         self.processes = {}
     
     async def start_server(self, server_name: str, config: Dict[str, Any]):
@@ -25,6 +30,7 @@ class MCPServerClient:
             command = config.get("command", "")
             args = config.get("args", [])
             
+            # create_subprocess_exec : MCP 서버를 띄우고 stdn/stdout/stderr 파이프를 연다
             process = await asyncio.create_subprocess_exec(
                 command, *args,
                 stdin=asyncio.subprocess.PIPE,
@@ -185,11 +191,17 @@ class MCPService:
         # Load MCP server configuration
         config = {
             "airbnb": {
-                "command": "npx",
+                "command": "npx.cmd",
                 "args": [
                     "-y",
                     "@openbnb/mcp-server-airbnb",
                     "--ignore-robots-txt"
+                ]
+            },
+            "naver": {
+                "command": "npx.cmd",
+                "args": [
+                    "-y", "@kbds/mcp-server-naver"
                 ]
             }
         }

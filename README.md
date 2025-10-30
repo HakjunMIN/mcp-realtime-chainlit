@@ -92,6 +92,28 @@ chainlit run chat.py
 1. `MCPService.initialize()` 메서드에 서버 설정을 추가합니다
 2. MCP 서버에 필요한 npm 패키지를 설치합니다
 
+### 테스트
+
+이 프로젝트는 포괄적인 단위 테스트 스위트를 포함합니다. 테스트를 실행하려면:
+
+```bash
+# pytest 설치
+python3 -m pip install pytest pytest-asyncio pytest-mock
+
+# 모든 테스트 실행
+pytest
+
+# 상세한 출력으로 테스트 실행
+pytest -v
+```
+
+자세한 정보는 [TESTING.md](TESTING.md) 또는 [TESTING-en.md](TESTING-en.md)를 참조하세요.
+
+테스트 커버리지:
+- 70개의 단위 테스트
+- 유틸리티 함수, MCP 서비스, 실시간 API 클래스 커버리지
+- 동기 및 비동기 함수 테스트
+
 ## 라이선스
 
 MIT 라이선스 (MIT)

@@ -91,6 +91,29 @@ To add a new MCP server:
 
 1. Add the server configuration to the `MCPService.initialize()` method
 2. Install the required npm package for the MCP server
+
+### Testing
+
+This project includes a comprehensive unit test suite. To run the tests:
+
+```bash
+# Install pytest
+python3 -m pip install pytest pytest-asyncio pytest-mock
+
+# Run all tests
+pytest
+
+# Run tests with verbose output
+pytest -v
+```
+
+For more information, see [TESTING.md](TESTING.md) or [TESTING-en.md](TESTING-en.md).
+
+Test coverage:
+- 70 unit tests
+- Coverage of utility functions, MCP service, and realtime API classes
+- Testing of both synchronous and asynchronous functions
+
 ## License
 
 MIT License (MIT)
